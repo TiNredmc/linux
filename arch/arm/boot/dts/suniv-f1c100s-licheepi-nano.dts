@@ -137,14 +137,14 @@
 		compatible = "spi-nand","allwinner,sun4i-a10-nand";
 		reg = <0>;
 		spi-max-frequency = <24000000>;
-        	};
+
         partitions {
             compatible = "fixed-partitions";
             #address-cells = <1>;
             #size-cells = <1>;
 
             partition@0 {
-                label = "u-boot";
+                label = "uboot";
                 reg = <0x000000 0x80000>;
                 read-only;
             };
@@ -166,6 +166,8 @@
                 reg = <0x4A0000 0x7C0000>;
             };
         };
+        	};
+
 };
 
 &tcon0 {
