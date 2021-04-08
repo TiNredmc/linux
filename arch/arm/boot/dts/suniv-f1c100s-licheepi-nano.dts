@@ -134,6 +134,34 @@
 		reg = <0>;
 		spi-max-frequency = <24000000>;
         	};
+        partitions {
+            compatible = "fixed-partitions";
+            #address-cells = <1>;
+            #size-cells = <1>;
+
+            partition@0 {
+                label = "u-boot";
+                reg = <0x000000 0x80000>;
+                read-only;
+            };
+
+            partition@80000 {
+                label = "dtb";
+                reg = <0x80000 0x2800>;
+                read-only;
+            };
+
+            partition@A0000 {
+                label = "kernel";
+                reg = <0xA0000 0x400000>;
+                read-only;
+            };
+
+            partition@4A0000 {
+                label = "rootfs";
+                reg = <0x4A0000 0x7C0000>;
+            };
+        };
 };
 
 &tcon0 {
