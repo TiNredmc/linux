@@ -50,6 +50,10 @@
 	};
 };
 
+&otg_sram{
+	status = "okay";
+};
+
 &be0 {
 	status = "okay";
 };
@@ -180,5 +184,15 @@
 &uart0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart0_pe_pins>;
+	status = "okay";
+};
+
+&usb_otg {
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&usbphy {
+	usb0_id_det-gpio = <&pio 4 2 GPIO_ACTIVE_HIGH>; /* PE2 */
 	status = "okay";
 };
