@@ -163,7 +163,7 @@
 
             partition@4A0000 {
                 label = "rootfs";
-                reg = <0x4A0000 0x7C0000>;
+                reg = <0x4A0000 0x7B60000>;
             };
         };
         	};
