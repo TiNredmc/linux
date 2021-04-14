@@ -6,6 +6,7 @@
 /dts-v1/;
 #include "suniv-f1c100s.dtsi"
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pwm/pwm.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 #include "sunxi-common-regulators.dtsi"
@@ -17,30 +18,32 @@
 	aliases {
 		serial0 = &uart0;
 		spi0 = &spi0;
+		spi1 = &spi1;
+		i2c0 = &i2c0;
+		pwm1 = &pwm1;
 	};
 
 	chosen {
 		stdout-path = "serial0:115200n8";
 	};
 
-	panel: panel {
-		compatible = "lg,lb070wv8", "simple-panel";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		enable-gpios = <&pio 4 6 GPIO_ACTIVE_HIGH>;
-		power-supply = <&reg_vcc3v3>;
-
- 		port@0 {
-			reg = <0>;
-			#address-cells = <1>;
-			#size-cells = <0>;
-
- 			panel_input: endpoint@0 {
-				reg = <0>;
-				remote-endpoint = <&tcon0_out_lcd>;
-			};
-		};
-	};
+//	panel: panel {
+//		compatible = "lg,lb070wv8", "simple-panel";
+//		#address-cells = <1>;
+//		#size-cells = <0>;
+//		power-supply = <&reg_vcc3v3>;
+//
+//		port@0 {
+//			reg = <0>;
+//			#address-cells = <1>;
+//			#size-cells = <0>;
+//
+ //			panel_input: endpoint@0 {
+//				reg = <0>;
+//				remote-endpoint = <&tcon0_out_lcd>;
+//			};
+//		};
+//	};
 
 	reg_vcc3v3: vcc3v3 {
 		compatible = "regulator-fixed";
@@ -67,16 +70,6 @@
     pinctrl-names = "default";
     status = "okay";
 
-    gt911: touchscreen@14 {
-        compatible = "goodix,gt911";
-        reg = <0x14>;
-        interrupt-parent = <&pio>;
-        interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>; /* (PE10) */
-        pinctrl-names = "default";
-        irq-gpios = <&pio 4 10 GPIO_ACTIVE_HIGH>; /* (PE10) */
-        reset-gpios = <&pio 4 9 GPIO_ACTIVE_HIGH>; /* RST (PE9) */
-        /* touchscreen-swapped-x-y */
-    };
 };
 
 &mmc0 {
@@ -87,10 +80,7 @@
 };
 
 &pio {
-    ts_reset_pin: ts_reset_pin@0 {
-        pins = "PE9";
-        function = "gpio_out";
-    };
+	status = "okay";
 };
 
 &lradc {
@@ -126,6 +116,12 @@
 	};
 };
 
+&pwm1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pwm1_pins>;
+	status = "okay";
+};
+
 &spi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi0_pins_a>;
@@ -136,7 +132,7 @@
 		#size-cells = <1>;
 		compatible = "spi-nand","allwinner,sun4i-a10-nand";
 		reg = <0>;
-		spi-max-frequency = <24000000>;
+		spi-max-frequency = <50000000>;
 
         partitions {
             compatible = "fixed-partitions";
@@ -170,18 +166,36 @@
 
 };
 
-&tcon0 {
+&spi1 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&lcd_rgb666_pins>;
+	pinctrl-0 = <&spi1_pins_a>;
 	status = "okay";
+	spi-max-frequency = <50000000>;
+	
+	fb@0{ 
+		#address-cell = <1>;
+		#size-cell = <0>;
+		reg = <0>;
+		compatible = "sharp,sharp-memlcd";
+		pwms = <&pwm1 0 16666666 0>; // pwmchip0 (from &pwm1) period 0.016/666/666 second (1.6e7 ns).
+		vcs-gpios = <&pio 4 3 GPIO_ACTIVE_LOW>; //virtual CS pin PE3 
+		spi-max-frequency = <1500000>; // 1.5MHz
+	};
+
 };
 
-&tcon0_out {
-	tcon0_out_lcd: endpoint@0 {
-		reg = <0>;
-		remote-endpoint = <&panel_input>;
-	};
-};
+//&tcon0 {
+//	pinctrl-names = "default";
+//	pinctrl-0 = <&lcd_rgb666_pins>;
+//	status = "okay";
+//};
+
+//&tcon0_out {
+//	tcon0_out_lcd: endpoint@0 {
+//		reg = <0>;
+//		remote-endpoint = <&panel_input>;
+//	};
+//};
 
 &uart0 {
 	pinctrl-names = "default";

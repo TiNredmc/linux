@@ -177,7 +177,7 @@
 			i2c0_pins: i2c0 {
 				pins = "PE11", "PE12";
 				function = "i2c0";
-            };
+            		};
 
 			uart0_pe_pins: uart0-pe-pins {
 				pins = "PE0", "PE1";
@@ -201,6 +201,16 @@
 			spi0_pins_a: spi0-pins-pc {
 				pins = "PC0", "PC1", "PC2", "PC3";
 				function = "spi0";
+			};
+
+			spi1_pins_a: spi1-pins-pc {
+				pins = "PA0", "PA1", "PA2", "PA3";
+				function = "spi1";
+			};
+
+			pwm1_pins: pwm1 {
+				pins = "PE6";
+				function = "pwm1";
 			};
 		};
 
@@ -374,5 +384,12 @@
 			#phy-cells = <1>;
 			status = "disabled";
 		};
+      		pwm1: pwm@1C21000 {
+		    compatible = "allwinner,sun7i-a20-pwm";        
+			reg = <0x1C21000 0xC>;
+			clocks = <&osc24M>;
+			#pwm-cells = <3>;
+			status = "disabled";
+	   	};
 	};
 };

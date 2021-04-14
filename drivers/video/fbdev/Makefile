@@ -123,6 +123,7 @@ obj-$(CONFIG_FB_HYPERV)		  += hyperv_fb.o
 obj-$(CONFIG_FB_OPENCORES)	  += ocfb.o
 obj-$(CONFIG_FB_SM712)		  += sm712fb.o
 
+
 # Platform or fallback drivers go here
 obj-$(CONFIG_FB_UVESA)            += uvesafb.o
 obj-$(CONFIG_FB_VESA)             += vesafb.o
@@ -134,6 +135,7 @@ obj-$(CONFIG_FB_DA8XX)		  += da8xx-fb.o
 obj-$(CONFIG_FB_MXS)		  += mxsfb.o
 obj-$(CONFIG_FB_SSD1307)	  += ssd1307fb.o
 obj-$(CONFIG_FB_SIMPLE)           += simplefb.o
+obj-$(CONFIG_FB_SHARP_MEMLCD) 	  += sharp_memlcd.o
 
 # the test framebuffer is last
 obj-$(CONFIG_FB_VIRTUAL)          += vfb.o

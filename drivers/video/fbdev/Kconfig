@@ -2276,6 +2276,21 @@ config FB_SSD1307
 	  This driver implements support for the Solomon SSD1307
 	  OLED controller over I2C.
 
+config FB_SHARP_MEMLCD
+	tristate "Sharp Memory LCD Framebuffer support"
+	depends on FB && SPI
+	depends on OF
+	depends on GPIOLIB || COMPILE_TEST
+	select FB_SYS_FOPS
+	select FB_SYS_FILLRECT
+	select FB_SYS_COPYAREA
+	select FB_SYS_IMAGEBLIT
+	select FB_DEFERRED_IO
+	select PWM
+	help
+	  Framebuffer driver for monochrome SHARP Memory LCD 
+	  over SPI protocol an PWM provide EXCOM inverter signal 
+
 config FB_SM712
 	tristate "Silicon Motion SM712 framebuffer support"
 	depends on FB && PCI
