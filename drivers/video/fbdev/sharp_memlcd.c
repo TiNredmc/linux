@@ -14,6 +14,9 @@
 #include <linux/errno.h>
 #include <linux/string.h>
 #include <linux/mm.h>
+#include <linux/vmalloc.h>
+#include <linux/slab.h>
+#include <linux/init.h>
 #include <linux/fb.h>
 #include <linux/spi/spi.h>
 #include <linux/gpio/consumer.h>
@@ -129,7 +132,7 @@ static int memlcd_init(struct memlcd_par *par){
 }
 
 static void memlcd_update_display(struct memlcd_par *par){
-	u8 *vmem = par->info->screen_buffer;
+	u8 *vmem = par->info->screen_base;
 	u8 SendBuf[2];
 	SendBuf[0] = MLCD_UD;
 	u8 *DispBuf;
@@ -234,7 +237,7 @@ static int memlcd_probe(struct spi_device *spi){
 	}
 
 	/* Allocate swapped shadow buffer */
-	vmem = vzalloc(vmem_size);
+	vmem = kzalloc(vmem_size, GFP_KERNEL);
 	if (!vmem)
 		return -ENOMEM;
 
@@ -245,9 +248,8 @@ static int memlcd_probe(struct spi_device *spi){
 		goto fballoc_fail;
 	printk("MLCD fb mallocated\n");	
 	
-	info->screen_buffer = vmem;
+	info->screen_base = (u8 __force __iomem *)vmem;
 	info->fix = memlcd_fix;
-	info->fix.smem_start = __pa(vmem);
 	info->fix.smem_len = vmem_size;
 
 	info->fbops = &memlcd_ops;
@@ -264,6 +266,7 @@ static int memlcd_probe(struct spi_device *spi){
 	info->fbdefio = &memlcd_defio;
 	fb_deferred_io_init(info);
 
+	par = info->par;
 	par->info = info;
 	par->spi = spi;
 
@@ -311,7 +314,7 @@ fbreg_fail:
 	printk(KERN_INFO"SHARP memory LCD fbreg failed");
 
 fballoc_fail:
-	vfree(par->ssbuf);
+	kvfree(vmem);
 	printk(KERN_INFO"SHARP memory LCD fb mem allocate failed");
 	return -ENOMEM;
 }
