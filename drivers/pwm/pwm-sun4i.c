@@ -328,6 +328,9 @@ static const struct sun4i_pwm_data sun4i_pwm_single_bypass = {
 
 static const struct of_device_id sun4i_pwm_dt_ids[] = {
 	{
+		.compatible = "allwinner,suniv-pwm",
+		.data = &sun4i_pwm_dual_nobypass,
+	},{
 		.compatible = "allwinner,sun4i-a10-pwm",
 		.data = &sun4i_pwm_dual_nobypass,
 	}, {
