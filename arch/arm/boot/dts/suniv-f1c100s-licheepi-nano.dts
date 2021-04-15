@@ -177,7 +177,7 @@
 		#size-cell = <0>;
 		reg = <0>;
 		compatible = "sharp,sharp-memlcd";
-		pwms = <&pwm1 0 16666666 0>; // pwmchip0 (from &pwm1) period 0.016/666/666 second (1.6e7 ns).
+		pwms = <&pwm1 1 16666666 0>; // pwmchip0 (from &pwm1) period 0.016/666/666 second (1.6e7 ns).
 		vcs-gpios = <&pio 4 3 GPIO_ACTIVE_LOW>; //virtual CS pin PE3 
 		spi-max-frequency = <1500000>; // 1.5MHz
 	};
