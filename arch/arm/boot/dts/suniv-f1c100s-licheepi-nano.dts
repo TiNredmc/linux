@@ -32,13 +32,13 @@
 //		#address-cells = <1>;
 //		#size-cells = <0>;
 //		power-supply = <&reg_vcc3v3>;
-//
+
 //		port@0 {
 //			reg = <0>;
 //			#address-cells = <1>;
 //			#size-cells = <0>;
-//
- //			panel_input: endpoint@0 {
+
+//			panel_input: endpoint@0 {
 //				reg = <0>;
 //				remote-endpoint = <&tcon0_out_lcd>;
 //			};
