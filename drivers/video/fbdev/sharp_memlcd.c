@@ -19,7 +19,7 @@
 #include <linux/init.h>
 #include <linux/fb.h>
 #include <linux/spi/spi.h>
-#include <linux/gpio/consumer.h>
+#include <linux/gpio.h>
 #include <linux/pwm.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -90,14 +90,15 @@ static uint8_t memlcd_msb2lsb(uint8_t msb){
 	return msb;
 }
 
-static int memlcd_write_buf(struct memlcd_par *par, uint8_t* val, uint8_t bitLen){
+static int memlcd_write_buf(struct memlcd_par *par, u8* val, size_t bitLen){
 	int ret;
 	
-	gpio_set_value(par->virt_cs, 1);// Begin 
+	gpio_set_value_cansleep(par->virt_cs, 1);// Begin 	
 
 	ret = spi_write(par->spi, &val, bitLen);// Send bytes
 
-	gpio_set_value(par->virt_cs, 0);// End
+	gpio_set_value_cansleep(par->virt_cs, 0);// End
+
 
 	return ret;
 }
@@ -126,34 +127,40 @@ static int memlcd_init(struct memlcd_par *par){
 	printk("MLCD PWM ON\n");
 
 	// Display memory clear
-        ret = memlcd_write_buf(par,MLCD_MC,1);
+        ret = memlcd_write_buf(par, (u8 *)MLCD_MC,1);
 	printk("MLCD DISP clear\n");
 	return ret;
  
 }
 
 static void memlcd_update_display(struct memlcd_par *par){
-	u8 *vmem = par->info->screen_base;
+	u8 *vmem = par->info->screen_base; // - *a = &b
 	u8 SendBuf[2];
-	SendBuf[0] = (u8) MLCD_UD;
-	u8 *DispBuf;
+	SendBuf[0] = MLCD_UD;
+	//u8 *DispBuf = vmem;
 	u16 i;
 	u16 offset;
-
-	for (i=0; i < MLCD_BUFSIZE; i++)
-		DispBuf[i] = memlcd_msb2lsb(vmem[i]);
-	
 	u8 row;
-	for (row=1; row < (CONFIG_SHARP_MLCD_W + 1);row++){
+
+	for (i=0; i < MLCD_BUFSIZE; i++){ // Display W*H / 8
+		//DispBuf[i] = memlcd_msb2lsb(vmem[i]);
+		vmem[i] = memlcd_msb2lsb(vmem[i]);
+	}
+
+	for (row=1; row < (CONFIG_SHARP_MLCD_H + 1);row++){ //1->Display H
 		SendBuf[1] = memlcd_msb2lsb(row);
 
 		offset = (row-1) * MLCD_RSIZE;
+		//printk("MLCD offset %u\n",offset);
 
 		memlcd_write_buf(par, SendBuf, 2);
-		memlcd_write_buf(par, DispBuf + offset, MLCD_RSIZE);	
+		memlcd_write_buf(par, vmem + offset, MLCD_RSIZE);
+		//printk("MLCD sent %d\n",row);	
 	}
-	
-	memlcd_write_buf(par, MLCD_DM, 2);
+
+	SendBuf[0] = MLCD_DM;
+	SendBuf[1] = 0;
+	memlcd_write_buf(par, SendBuf, 2);
 }
 
 static ssize_t memlcd_write(struct fb_info *info, const char __user *buf, size_t count, loff_t *ppos){
@@ -224,11 +231,13 @@ static struct fb_deferred_io memlcd_defio = {
 };
 
 static int memlcd_probe(struct spi_device *spi){
-	struct memlcd_platform_data *pdata = spi->dev.platform_data;
+	struct device_node *np = spi->dev.of_node;
 	struct fb_info *info;
 	struct memlcd_par *par;
+	enum of_gpio_flags of_flags = 0;
 	u8 *vmem;
 	int vmem_size = MLCD_BUFSIZE; 
+	int ret;
 
 	printk("MLCD probing...\n");
 	if (!spi->dev.of_node) {
@@ -275,13 +284,25 @@ static int memlcd_probe(struct spi_device *spi){
 	par->spi = spi;
 
 	par->virt_cs = devm_gpiod_get_optional(&spi->dev, "vcs-gpios",
-						     GPIOD_OUT_LOW);
+						     GPIOF_INIT_LOW);
 	if (IS_ERR(par->virt_cs)) {
-			dev_err(&spi->dev, "failed to request GPIO: %ld\n", PTR_ERR(par->virt_cs));
+		printk("failed to request vcs GPIO\n");
 		goto init_fail;
 	}
 
-	printk("MLCD gpio found!\n");	
+	par->virt_cs = of_get_named_gpio_flags(np, "vcs-gpios", 0, &of_flags);
+	
+ 	ret = gpio_is_valid(par->virt_cs);
+	if(ret < 0){
+		printk("GPIO invalid\n");
+		return ret;
+	}
+	printk("MLCD gpio found!: %d\n",par->virt_cs);
+
+	if(gpio_request_one(par->virt_cs, GPIOF_OUT_INIT_LOW, "vcs-gpios")){
+		printk("MLCD request vcs GPIO failed\n");
+		return -ENODEV;
+	}
 
 	//PWM probe
 	par->pwm = pwm_get(&spi->dev, NULL);
@@ -293,8 +314,7 @@ static int memlcd_probe(struct spi_device *spi){
 
 	printk("MLCD registering fb...\n");
 
-	int errcode = register_framebuffer(info);
-	if (errcode < 0)
+	if (register_framebuffer(info))
 		goto fbreg_fail;
 
 	printk("MLCD fb registered\n");	

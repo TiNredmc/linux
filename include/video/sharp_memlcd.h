@@ -21,6 +21,7 @@ struct memlcd_par {
 	u32 pwm_period;
 };
 
+//reserve for future use
 struct memlcd_platform_data {
 	int vcs_gpio;
 };
