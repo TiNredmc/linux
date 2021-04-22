@@ -11,14 +11,16 @@
  *
  */
 
-struct memlcd_par {
+struct memlcdfb_par {
 	struct spi_device *spi;
 	struct fb_info *info;
 	struct pwm_device *pwm;
 	const struct memlcd_platform_data *pdata;
-	u8 *ssbuf;
 	int virt_cs;
 	u32 pwm_period;
+	u16 offset;
+	u8 YlineStart;
+	u8 YlineEnd
 };
 
 //reserve for future use
