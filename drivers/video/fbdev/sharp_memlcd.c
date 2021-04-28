@@ -55,11 +55,11 @@ u8 ssbuf[MLCD_RSIZE + 4];
 static const struct fb_fix_screeninfo memlcdfb_fix  = {
 	.id = 			"SHARP MEMLCD_FB",
 	.type = 		FB_TYPE_PACKED_PIXELS,
-	.visual = 		FB_VISUAL_MONO01, //black px is 1, white is 0
+	.visual = 		FB_VISUAL_TRUECOLOR, //FB_VISUAL_MONO01 black px is 1, white is 0
 	.xpanstep = 		0,
 	.ypanstep = 		0,
 	.ywrapstep = 		0,
-	.line_length =		MLCD_RSIZE,
+	.line_length =		CONFIG_SHARP_MLCD_W,
 	.accel = 		FB_ACCEL_NONE,
 };
 
@@ -69,21 +69,21 @@ static const struct fb_var_screeninfo memlcdfb_var  = {
 	.xres_virtual =		CONFIG_SHARP_MLCD_W,
 	.yres_virtual = 	CONFIG_SHARP_MLCD_H,
 	/* monochrome pixel format */
-	.bits_per_pixel = 	1,
+	.bits_per_pixel = 	8,
 	.grayscale      = 1,
 	.red            = {
-		.offset = 0,
-		.length = 1,
+		.offset = 11,
+		.length = 5,
 		.msb_right = 0,
 	},
 	.green          = {
-		.offset = 0,
-		.length = 1,
+		.offset = 5,
+		.length = 6,
 		.msb_right = 0,
 	},
 	.blue           = {
 		.offset = 0,
-		.length = 1,
+		.length = 5,
 		.msb_right = 0,
 	},
 	.transp         = {
@@ -145,22 +145,31 @@ static void memlcdfb_update_display(struct memlcdfb_par *par){
 	u8 *vmem = par->info->screen_base; // *a = &b new pointer with same address as screen base.
 	u8 SendBuf[2];
 	SendBuf[0] = MLCD_UD;
-	u8 row;
+	u8 row, cpy, i;
+	u8 row_size = MLCD_RSIZE;
 
 	gpio_set_value_cansleep(par->virt_cs, 1);// begin
 	for (row=par->YlineStart; row < (par->YlineEnd + 1);row++){ // 1->Display H
 	
 		SendBuf[1] = row;
-		par->offset = (row-1) * MLCD_RSIZE;
+		par->offset = (row-1) * (row_size*8);
 
  		memcpy(ssbuf, SendBuf, 2);
-		memcpy(ssbuf + 2,(void __force *) vmem + par->offset, MLCD_RSIZE);
-		memset(ssbuf + (MLCD_RSIZE + 4), 0, 2);
-		spi_write(par->spi, &ssbuf, MLCD_RSIZE + 4);
+		//memcpy(ssbuf + 2,(void __force *) vmem + par->offset, row_size);
+		//ssbuf =+ 2;// move away from first 2 bytes
+
+		//COMPRESS 1 byte into 1 bit (we see color intensity > 0 as 1 since we use monochrome Display)
+		for(cpy = 0; cpy < row_size; cpy++){ // loop it to fit the row size and compress (R_SIZE * 8) >>>> (R_SIZE)
+			for(i  = 0; i < 8;i++){
+			ssbuf[cpy+2] = ((u8 __iomem)vmem[i + (cpy * 8) + par->offset] ? 1 : 0 ) << i; //only if any color is present event with intensity = 1, we decided to turn pixel on 
+			} 
+		}
+		memset(ssbuf + (row_size + 4), 0, 2);
+		spi_write(par->spi, &ssbuf, 50 + 4);
 	}
 	gpio_set_value_cansleep(par->virt_cs, 0);// end
 	par->YlineStart = 0;
-	par->YlineEnd 	= 240;
+	par->YlineEnd 	= CONFIG_SHARP_MLCD_H;
 }
 
 static ssize_t memlcdfb_write(struct fb_info *info, const char __user *buf, size_t count, loff_t *ppos){
@@ -168,11 +177,11 @@ static ssize_t memlcdfb_write(struct fb_info *info, const char __user *buf, size
 	unsigned long total_size;
 	unsigned long p = *ppos;
 	void __iomem *dst;
-
+	u16 row_size = MLCD_RSIZE * 8;
 	total_size = info->fix.smem_len;
 
 	if (p > total_size){
-		printk("MLCD input buf offset is too far!: %ld\n",p);
+		printk("MLCD input buf offset is too far!: %ld\n", p);
 		return -EINVAL;
 	}
 
@@ -181,9 +190,11 @@ static ssize_t memlcdfb_write(struct fb_info *info, const char __user *buf, size
 
 	if (!count)
 		return -EINVAL;
+	printk("ppos address %lu\n", p);
+	par->YlineStart = (p / row_size) + 1;// row number where the buf start. (plus 1 since Display Y axis not starting with 0)
+	par->YlineEnd	= ((count + p) / row_size) + 1;// row number where the buf end. '' 
 
-	par->YlineStart = (p / MLCD_RSIZE) + 1;// row number where the buf start. (plus 1 since Display Y axis not starting with 0)
-	par->YlineEnd	= ((count + p) / MLCD_RSIZE) + 1;// row number where the buf end. '' 
+	printk("Row start %u Row end %u\n", par->YlineStart, par->YlineEnd);
 
 	dst = (void __force *) (info->screen_base + p);
 
@@ -251,7 +262,7 @@ static int memlcdfb_probe(struct spi_device *spi){
 	struct memlcdfb_par *par;
 	enum of_gpio_flags of_flags = 0;
 	u8 *vmem;
-	int vmem_size = MLCD_BUFSIZE; 
+	u32 vmem_size = CONFIG_SHARP_MLCD_W * CONFIG_SHARP_MLCD_H; 
 	int ret;
 
 	printk("MLCD probing...\n");
@@ -291,7 +302,7 @@ static int memlcdfb_probe(struct spi_device *spi){
 	par->spi = spi;
 
 	par->YlineStart = 0;
-	par->YlineEnd 	= 240;
+	par->YlineEnd 	= CONFIG_SHARP_MLCD_H;
 
 	par->virt_cs = devm_gpiod_get_optional(&spi->dev, "vcs-gpios",
 						     GPIOF_INIT_LOW);
@@ -322,8 +333,6 @@ static int memlcdfb_probe(struct spi_device *spi){
 		}
 	printk("MLCD pwm probed!\n");
 
-	printk("MLCD registering fb...\n");
-
 	spi_set_drvdata(spi, info);
 	
 	printk("MLCD SPI driver data set\n");
@@ -332,13 +341,14 @@ static int memlcdfb_probe(struct spi_device *spi){
 		goto init_fail;
 	printk("MLCD Initialzed\n");
 
+	printk("MLCD registering fb...\n");
 	if (register_framebuffer(info))
 		goto fbreg_fail;
 
 	printk("MLCD fb registered\n");	
 
 	printk(KERN_INFO
-		"fb%d: %s frame buffer device,\n\tusing %d KiB of video memory\n",
+		"fb%d: %s frame buffer device,\n\tusing %u KiB of video memory\n",
 		info->node, info->fix.id, vmem_size);
 
 	return 0;
