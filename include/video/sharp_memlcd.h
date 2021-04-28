@@ -18,9 +18,9 @@ struct memlcdfb_par {
 	const struct memlcd_platform_data *pdata;
 	int virt_cs;
 	u32 pwm_period;
-	u16 offset;
+	u32 offset;
 	u8 YlineStart;
-	u8 YlineEnd
+	u8 YlineEnd;
 };
 
 //reserve for future use
