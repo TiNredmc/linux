@@ -73,7 +73,7 @@
 	digitizer@9{
 		compatible = "wacom,generic";
 		reg = <0x09>;
-	}
+	};
 };
 
 &mmc0 {
