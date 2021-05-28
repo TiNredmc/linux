@@ -71,8 +71,12 @@
     status = "okay";
 
 	digitizer@9{
+		pinctrl-names = "default";
+		pinctrl-0 = <&WACINT_pin>;
 		compatible = "wacom,generic";
-		reg = <0x09>;
+		reg = <0x09>;//W9013 i2c address
+		interrupt-parent = <&pio>;// Interrupt parent is our pin control (pio)
+		interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>;//PE 10 detect falling edge, 4 represent port E
 	};
 };
 

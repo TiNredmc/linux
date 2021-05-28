@@ -222,6 +222,11 @@
 				pins = "PE6";
 				function = "pwm1";
 			};
+
+			WACINT_pin: int-pin{
+				pins = "PE10";// PE10 as input interrupt detecting pen present
+				function = "irq";
+			};
 		};
 
 		timer@1c20c00 {
