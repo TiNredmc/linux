@@ -70,6 +70,7 @@
     pinctrl-names = "default";
     status = "okay";
     clock-frequency = <1000000>;
+    WACrst-gpios = <&pio 4 9 GPIO_ACTIVE_HIGH>;//PE9, host reset w9013 when it cause bus lock.
 
 	digitizer@9{
 		pinctrl-names = "default";
