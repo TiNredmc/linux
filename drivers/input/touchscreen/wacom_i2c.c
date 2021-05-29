@@ -265,8 +265,7 @@ static const struct i2c_device_id wacom_i2c_id[] = {
 MODULE_DEVICE_TABLE(i2c, wacom_i2c_id);
 
 static const struct of_device_id wacom_i2c_of_match_table[] = {
-	{ .compatible = "wacom,generic" },
-	{ .compatible = "wacom,i2c"	},
+	{ .compatible = "wacom,w9013" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, wacom_i2c_of_match_table);

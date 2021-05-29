@@ -226,6 +226,8 @@
 			WACINT_pin: int-pin{
 				pins = "PE10";// PE10 as input interrupt detecting pen present
 				function = "irq";
+				drive = <0>;
+				pull = <1>;
 			};
 		};
 
