@@ -153,7 +153,7 @@ struct mv64xxx_i2c_data {
 	/* Clk div is 2 to the power n, not 2 to the power n + 1 */
 	bool			clk_n_base_0;
 #ifdef CONFIG_TOUCHSCREEN_WACOM_I2C
-	int 			wac_rst;// Pin use for resetting wacom w9013 
+	u32 			wac_rst;// Pin use for resetting wacom w9013 
 #endif
 };
 
@@ -983,7 +983,13 @@ mv64xxx_i2c_probe(struct platform_device *pd)
 #ifdef CONFIG_TOUCHSCREEN_WACOM_I2C // If using Wacom i2c w9013
 	drv_data->wac_rst = devm_gpiod_get_optional(&pd->dev, "WACrst-gpios",
 						     GPIOF_INIT_HIGH);
-	drv_data->wac_rst = of_get_named_gpio_flags(np, "vcs-gpios", 0, &of_flags);
+
+	if (drv_data->wac_rst < 0) {
+		dev_err(&drv_data->adapter.dev,"failed to request Wacom Reset GPIO\n");
+		goto exit_free_irq;
+	}
+
+	drv_data->wac_rst = of_get_named_gpio_flags(np, "WACrst-gpios", 0, &of_flags);
 
  	rc = gpio_is_valid(drv_data->wac_rst);
 	if(rc < 0){
