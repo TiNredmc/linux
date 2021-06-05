@@ -712,20 +712,24 @@ static struct bq27xxx_dm_reg bq27500_dm_regs[] = {
 #define bq27521_dm_regs 0
 #define bq27530_dm_regs 0
 #define bq27531_dm_regs 0
-#define bq27541_dm_regs 0
+
+static struct bq27xxx_dm_reg bq27541_dm_regs[] = {
+	[BQ27XXX_DM_DESIGN_CAPACITY]   = { 48, 23, 2,    0, 32767 },
+	[BQ27XXX_DM_DESIGN_ENERGY]     = { 48, 25, 2,    0, 32767 },
+	[BQ27XXX_DM_TERMINATE_VOLTAGE] = { 80, 50, 2, 2800,  3700 },
+};
+
 #define bq27542_dm_regs 0
 #define bq27546_dm_regs 0
 #define bq27742_dm_regs 0
 
-#if 0 /* not yet tested */
+
 static struct bq27xxx_dm_reg bq27545_dm_regs[] = {
 	[BQ27XXX_DM_DESIGN_CAPACITY]   = { 48, 23, 2,    0, 32767 },
 	[BQ27XXX_DM_DESIGN_ENERGY]     = { 48, 25, 2,    0, 32767 },
 	[BQ27XXX_DM_TERMINATE_VOLTAGE] = { 80, 67, 2, 2800,  3700 },
 };
-#else
-#define bq27545_dm_regs 0
-#endif
+
 
 static struct bq27xxx_dm_reg bq27411_dm_regs[] = {
 	[BQ27XXX_DM_DESIGN_CAPACITY]   = { 82, 10, 2,    0, 32767 },
@@ -805,7 +809,7 @@ static struct {
 	[BQ27521]   = BQ27XXX_DATA(bq27521,   0         , 0),
 	[BQ27530]   = BQ27XXX_DATA(bq27530,   0         , BQ27XXX_O_UTOT),
 	[BQ27531]   = BQ27XXX_DATA(bq27531,   0         , BQ27XXX_O_UTOT),
-	[BQ27541]   = BQ27XXX_DATA(bq27541,   0         , BQ27XXX_O_OTDC),
+	[BQ27541]   = BQ27XXX_DATA(bq27541,   0x04143672, BQ27XXX_O_OTDC),
 	[BQ27542]   = BQ27XXX_DATA(bq27542,   0         , BQ27XXX_O_OTDC),
 	[BQ27546]   = BQ27XXX_DATA(bq27546,   0         , BQ27XXX_O_OTDC),
 	[BQ27742]   = BQ27XXX_DATA(bq27742,   0         , BQ27XXX_O_OTDC),

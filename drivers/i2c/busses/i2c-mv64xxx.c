@@ -26,6 +26,11 @@
 #include <linux/err.h>
 #include <linux/delay.h>
 
+#ifdef CONFIG_TOUCHSCREEN_WACOM_I2C // If using Wacom i2c w9013
+#include <linux/of_gpio.h>
+#include <linux/gpio.h>
+#endif
+
 #define MV64XXX_I2C_ADDR_ADDR(val)			((val & 0x7f) << 1)
 #define MV64XXX_I2C_BAUD_DIV_N(val)			(val & 0x7)
 #define MV64XXX_I2C_BAUD_DIV_M(val)			((val & 0xf) << 3)
@@ -147,6 +152,9 @@ struct mv64xxx_i2c_data {
 	bool			irq_clear_inverted;
 	/* Clk div is 2 to the power n, not 2 to the power n + 1 */
 	bool			clk_n_base_0;
+#ifdef CONFIG_TOUCHSCREEN_WACOM_I2C
+	u32 			wac_rst;// Pin use for resetting wacom w9013 
+#endif
 };
 
 static struct mv64xxx_i2c_regs mv64xxx_i2c_regs_mv64xxx = {
@@ -168,6 +176,16 @@ static struct mv64xxx_i2c_regs mv64xxx_i2c_regs_sun4i = {
 	.clock		= 0x14,
 	.soft_reset	= 0x18,
 };
+
+#ifdef CONFIG_TOUCHSCREEN_WACOM_I2C // If using Wacom i2c w9013
+static void mv64xxx_i2c_slave_reset(struct mv64xxx_i2c_data *drv_data){
+
+	gpio_set_value_cansleep(drv_data->wac_rst, 0);
+	udelay(10);
+	gpio_set_value_cansleep(drv_data->wac_rst, 1);
+}
+
+#endif
 
 static void
 mv64xxx_i2c_prepare_for_io(struct mv64xxx_i2c_data *drv_data,
@@ -563,6 +581,9 @@ mv64xxx_i2c_wait_for_completion(struct mv64xxx_i2c_data *drv_data)
 				"time_left: %d\n", drv_data->block,
 				(int)time_left);
 			mv64xxx_i2c_hw_init(drv_data);
+#ifdef CONFIG_TOUCHSCREEN_WACOM_I2C // If using Wacom i2c w9013
+			mv64xxx_i2c_slave_reset(drv_data);// GPIO output to reset.
+#endif
 		}
 	} else
 		spin_unlock_irqrestore(&drv_data->lock, flags);
@@ -878,6 +899,10 @@ mv64xxx_i2c_probe(struct platform_device *pd)
 	struct mv64xxx_i2c_data		*drv_data;
 	struct mv64xxx_i2c_pdata	*pdata = dev_get_platdata(&pd->dev);
 	struct resource	*r;
+#ifdef CONFIG_TOUCHSCREEN_WACOM_I2C // If using Wacom i2c w9013
+	struct device_node *np = pd->dev.of_node;
+	enum of_gpio_flags of_flags = 0;
+#endif
 	int	rc;
 
 	if ((!pdata && !pd->dev.of_node))
@@ -955,6 +980,29 @@ mv64xxx_i2c_probe(struct platform_device *pd)
 		goto exit_free_irq;
 	}
 
+#ifdef CONFIG_TOUCHSCREEN_WACOM_I2C // If using Wacom i2c w9013
+	drv_data->wac_rst = devm_gpiod_get_optional(&pd->dev, "WACrst-gpios",
+						     GPIOF_INIT_HIGH);
+
+	if (drv_data->wac_rst < 0) {
+		dev_err(&drv_data->adapter.dev,"failed to request Wacom Reset GPIO\n");
+		goto exit_free_irq;
+	}
+
+	drv_data->wac_rst = of_get_named_gpio_flags(np, "WACrst-gpios", 0, &of_flags);
+
+ 	rc = gpio_is_valid(drv_data->wac_rst);
+	if(rc < 0){
+		dev_err(&drv_data->adapter.dev,"Wacom Reset GPIO invalid\n");
+		goto exit_free_irq;
+	}
+
+	if(gpio_request_one(drv_data->wac_rst, GPIOF_OUT_INIT_HIGH, "WACrst-gpios")){
+		dev_err(&drv_data->adapter.dev,"request Wacom Reset GPIO failed\n");
+		return -ENODEV;
+	}
+
+#endif
 	return 0;
 
 exit_free_irq:
