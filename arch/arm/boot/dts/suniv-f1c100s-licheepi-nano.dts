@@ -145,7 +145,7 @@
 		compatible = "sharp,sharp-memlcd";
 		pwms = <&pwm 1 20000000 0>; // pwmchip0 (from &pwm1) period 0.016/666/666 second (1.6e7 ns).
 		vcs-gpios = <&pio 4 3 GPIO_ACTIVE_LOW>; //virtual CS pin PE3 
-		spi-max-frequency = <4000000>; // 1.5MHz
+		spi-max-frequency = <2000000>; // 2MHz
 		spi-cs-high;
 		spi-lsb-first;
 	};
