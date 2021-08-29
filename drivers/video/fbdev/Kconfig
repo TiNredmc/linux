@@ -2291,6 +2291,20 @@ config FB_SHARP_MEMLCD
 	  Framebuffer driver for monochrome SHARP Memory LCD 
 	  over SPI protocol an PWM provide EXCOM inverter signal 
 
+config FB_VFDHACK32
+	tristate "VFDHack32 project host driver for Linux"
+	depends on FB && SPI	
+	depends on OF
+	select FB_SYS_FOPS
+	select FB_SYS_FILLRECT
+	select FB_SYS_COPYAREA
+	select FB_SYS_IMAGEBLIT
+	select FB_DEFERRED_IO
+	help
+		Frame buffer Driver for project "VFDHack32" STM32 as MN15439A Noritake Itron VFD display.		
+		154x39 real pixels, 160x39 virtual pixels (for frame buffer).
+		Data is sent over SPI bus, STM32 as slave receiving with DMA. 
+		
 config FB_SM712
 	tristate "Silicon Motion SM712 framebuffer support"
 	depends on FB && PCI

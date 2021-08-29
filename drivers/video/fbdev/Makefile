@@ -136,6 +136,7 @@ obj-$(CONFIG_FB_MXS)		  += mxsfb.o
 obj-$(CONFIG_FB_SSD1307)	  += ssd1307fb.o
 obj-$(CONFIG_FB_SIMPLE)           += simplefb.o
 obj-$(CONFIG_FB_SHARP_MEMLCD) 	  += sharp_memlcd.o
+obj-$(CONFIG_FB_VFDHACK32)		+= vfdhack32.o
 
 # the test framebuffer is last
 obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
