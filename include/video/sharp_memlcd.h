@@ -16,11 +16,10 @@ struct memlcdfb_par {
 	struct fb_info *info;
 	struct pwm_device *pwm;
 	const struct memlcd_platform_data *pdata;
+	u8 *ssbuf;
 	int virt_cs;
 	u32 pwm_period;
 	u32 offset;
-	u8 YlineStart;
-	u8 YlineEnd;
 };
 
 //reserve for future use
