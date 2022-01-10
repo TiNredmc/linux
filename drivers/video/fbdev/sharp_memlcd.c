@@ -55,7 +55,7 @@ u8 MLCD_DM = 0x00; // Dummy byte (sending after data update)
 static const struct fb_fix_screeninfo memlcdfb_fix  = {
 	.id = 			"SHARP MEMLCD_FB",
 	.type = 		FB_TYPE_PACKED_PIXELS,
-	.visual = 		FB_VISUAL_TRUECOLOR, //FB_VISUAL_MONO01 black px is 1, white is 0
+	.visual = 		FB_VISUAL_TRUECOLOR, //Most program expect the color display.
 	.xpanstep = 		0,
 	.ypanstep = 		0,
 	.ywrapstep = 		0,
@@ -68,7 +68,7 @@ static const struct fb_var_screeninfo memlcdfb_var  = {
 	.yres = 		CONFIG_SHARP_MLCD_H,
 	.xres_virtual =		CONFIG_SHARP_MLCD_W,
 	.yres_virtual = 	CONFIG_SHARP_MLCD_H,
-	/* monochrome pixel format */
+	/* color pixel format */
 	.bits_per_pixel = 	8,
 	.grayscale      = 1,
 	.red            = {
@@ -114,7 +114,7 @@ static void memlcdfb_pwm_on(struct memlcdfb_par *par){
 	pwm_get_args(par->pwm, &pargs);
 
 	par->pwm_period = pargs.period;
-	pwm_config(par->pwm, par->pwm_period / 2, par->pwm_period);
+	pwm_config(par->pwm, par->pwm_period / 2, par->pwm_period);// generates 50% duty cycle.
 
 	pwm_enable(par->pwm);
 	return 0;
@@ -123,7 +123,7 @@ static void memlcdfb_pwm_on(struct memlcdfb_par *par){
 /* Turn the disply and PWM on
  */
 static int memlcdfb_init(struct memlcdfb_par *par){
-	u8 SendBuf[2];
+	u8 SendBuf[2]={0};
 	SendBuf[0] = MLCD_MC;
 	SendBuf[1] = MLCD_DM;
 	int ret;
@@ -131,9 +131,11 @@ static int memlcdfb_init(struct memlcdfb_par *par){
 	memlcdfb_pwm_on(par);
 //	printk("MLCD PWM ON\n");
 
-	// Display memory clear
+	// Display memory clear, send multiple times as SPI workaround.
 	//gpio_set_value_cansleep(par->virt_cs, 1);
-        ret = spi_write(par->spi, &SendBuf,2);
+    ret = spi_write(par->spi, SendBuf,2);
+	ret = spi_write(par->spi, SendBuf,2);
+	ret = spi_write(par->spi, SendBuf,2);
 	//gpio_set_value_cansleep(par->virt_cs, 0);
 //	printk("MLCD DISP clear\n");
 
@@ -166,7 +168,7 @@ static void memlcdfb_update_display(struct memlcdfb_par *par){
 		}
 		
 		// Send data out to display over SPI.
-		spi_write(par->spi, &par->ssbuf, 50 + 4);
+		spi_write(par->spi, par->ssbuf, 50 + 4);
 	}
 	//gpio_set_value_cansleep(par->virt_cs, 0);// end
 }

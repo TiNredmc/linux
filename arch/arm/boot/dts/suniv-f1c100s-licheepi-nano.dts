@@ -124,35 +124,35 @@
 		reg = <0>;
 		spi-max-frequency = <50000000>;
 
-        partitions {
-            compatible = "fixed-partitions";
-            #address-cells = <1>;
-            #size-cells = <1>;
+			partitions {
+				compatible = "fixed-partitions";
+				#address-cells = <1>;
+				#size-cells = <1>;
 
-            partition@0 {
-                label = "uboot";
-                reg = <0x000000 0x80000>;
-                read-only;
-            };
+				partition@0 {
+					label = "uboot";
+					reg = <0x000000 0x80000>;
+					read-only;
+				};
 
-            partition@80000 {
-                label = "dtb";
-                reg = <0x80000 0x2800>;
-                read-only;
-            };
+				partition@80000 {
+					label = "dtb";
+					reg = <0x80000 0x2800>;
+					read-only;
+				};
 
-            partition@A0000 {
-                label = "kernel";
-                reg = <0xA0000 0x400000>;
-                read-only;
-            };
+				partition@A0000 {
+					label = "kernel";
+					reg = <0xA0000 0x400000>;
+					read-only;
+				};
 
-            partition@4A0000 {
-                label = "rootfs";
-                reg = <0x4A0000 0x7B60000>;
-            };
+				partition@4A0000 {
+					label = "rootfs";
+					reg = <0x4A0000 0x7B60000>;
+				};
+			};
         };
-        	};
 
 };
 
@@ -161,26 +161,25 @@
 	pinctrl-0 = <&spi1_pins_a>;
 	status = "okay";
 	
-//	fb@0{  
-//		#address-cell = <1>;
-//		#size-cell = <0>;
-//		reg = <0>;
-//		compatible = "sharp,sharp-memlcd";
-//		pwms = <&pwm 1 20000000 0>; // pwmchip0 (from &pwm1) period 0.016/666/666 second (1.6e7 ns).
-//		vcs-gpios = <&pio 4 3 GPIO_ACTIVE_LOW>; //virtual CS pin PE3 
-//		spi-max-frequency = <2000000>; // 2MHz
-//		spi-cs-high;
-//		spi-lsb-first;
-//	};
-
-	spidev@0{
+	fb@0{  
 		#address-cell = <1>;
-		#size-cell = <1>;
+		#size-cell = <0>;
 		reg = <0>;
-		compatible = "linux,spidev";
-		spi-max-frequency = <50000000>; // 50MHz
-		status = "okay";
+		compatible = "sharp,sharp-memlcd";
+		pwms = <&pwm 1 20000000 0>; // pwmchip0 (from &pwm1) period 0.016/666/666 second (1.6e7 ns).
+		vcs-gpios = <&pio 4 3 GPIO_ACTIVE_LOW>; //virtual CS pin PE3 
+		spi-max-frequency = <2000000>; // 2MHz
+		spi-cs-high;
 	};
+
+//	spidev@0{
+//		#address-cell = <1>;
+//		#size-cell = <1>;
+//		reg = <0>;
+//		compatible = "linux,spidev";
+//		spi-max-frequency = <50000000>; // 50MHz
+//		status = "okay";
+//	};
 };
 
 //&tcon0 {
