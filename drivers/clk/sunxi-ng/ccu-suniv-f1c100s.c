@@ -27,11 +27,13 @@ static struct ccu_nkmp pll_cpu_clk = {
 	.enable = BIT(31),
 	.lock	= BIT(28),
 
-	.n	= _SUNXI_CCU_MULT(8, 5),
-	.k	= _SUNXI_CCU_MULT(4, 2),
-	.m	= _SUNXI_CCU_DIV(0, 2),
+	// to get 720MHz clock, n = 15, k = 2, m = 1, p = 1
+
+	.n	= _SUNXI_CCU_MULT(8, 5),// n = 5
+	.k	= _SUNXI_CCU_MULT(4, 2),// k = 2
+	.m	= _SUNXI_CCU_DIV(0, 2),// m = 2
 	/* MAX is guessed by the BSP table */
-	.p	= _SUNXI_CCU_DIV_MAX(16, 2, 4),
+	.p	= _SUNXI_CCU_DIV_MAX(16, 2, 4),// p = 2 
 
 	.common	= {
 		.reg		= 0x000,
