@@ -29,6 +29,14 @@
 			clock-output-names = "osc32k";
 		};
 	};
+	
+	clk_pll_cpu: pll_cpu {// CPU core clock running at 720MHz 
+            #clock-cells = <0>;
+            compatible = "allwinner,sunxi-pll-clock";
+            lock-mode = "none";
+            assigned-clock-rates = <720000000>;
+            clock-output-names = "pll_cpu";
+    };
 
 	cpus {
 		cpu {
@@ -225,6 +233,13 @@
 
 			WACINT_pin: int-pin{
 				pins = "PE10";// PE10 as input interrupt detecting pen present
+				function = "irq";
+				drive = <0>;
+				pull = <1>;
+			};
+			
+			SYNAINT_pin: int2-pin{
+				pins = "PE9";// PE9 as input interrupt detecting finger present
 				function = "irq";
 				drive = <0>;
 				pull = <1>;
