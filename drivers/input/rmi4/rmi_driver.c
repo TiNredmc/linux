@@ -15,6 +15,7 @@
 #include <linux/delay.h>
 #include <linux/fs.h>
 #include <linux/irq.h>
+#include <linux/interrupt.h>
 #include <linux/pm.h>
 #include <linux/slab.h>
 #include <linux/of.h>
@@ -218,9 +219,12 @@ static int rmi_irq_init(struct rmi_device *rmi_dev)
 {
 	struct rmi_device_platform_data *pdata = rmi_get_platform_data(rmi_dev);
 	struct rmi_driver_data *data = dev_get_drvdata(&rmi_dev->dev);
-	int irq_flags = irq_get_trigger_type(pdata->irq);
+	int irq_flags;
 	int ret;
 
+	pdata->irq = 39;// WORKAROUND OF -22 error 
+	
+	irq_flags = irq_get_trigger_type(pdata->irq);
 	if (!irq_flags)
 		irq_flags = IRQF_TRIGGER_LOW;
 
@@ -228,9 +232,10 @@ static int rmi_irq_init(struct rmi_device *rmi_dev)
 					rmi_irq_fn, irq_flags | IRQF_ONESHOT,
 					dev_driver_string(rmi_dev->xport->dev),
 					rmi_dev);
+
 	if (ret < 0) {
-		dev_err(&rmi_dev->dev, "Failed to register interrupt %d\n",
-			pdata->irq);
+		dev_err(&rmi_dev->dev, "Failed to register interrupt %d Error %d\n",
+			pdata->irq, ret);
 
 		return ret;
 	}
@@ -1213,7 +1218,7 @@ static int rmi_driver_probe(struct device *dev)
 			}
 		}
 	}
-
+	
 	retval = rmi_irq_init(rmi_dev);
 	if (retval < 0)
 		goto err_destroy_functions;
