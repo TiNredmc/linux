@@ -76,35 +76,40 @@
     pinctrl-0 = <&i2c0_pins>;
     pinctrl-names = "default";
     status = "okay";
-    clock-frequency = <400000>;// 400kHz
+    clock-frequency = <100000>;// 100kHz
 
-	touchscreen: digitizer@9{
-		pinctrl-names = "default";
-		pinctrl-0 = <&WACINT_pin>;
-		compatible = "wacom,w9013";
-		reg = <0x09>;//W9013 i2c address
-		interrupt-parent = <&pio>;// Interrupt parent is our pin control (pio)
-		interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>;//PE 10 detect falling edge, 4 represent port E
-	};
+//	touchscreen: wacom@9{
+//		pinctrl-names = "default";
+//		pinctrl-0 = <&INT_pin>;
+//		compatible = "wacom,w9013";
+//		reg = <0x09>;//W9013 i2c address
+//		interrupt-parent = <&pio>;// Interrupt parent is our pin control (pio)
+//		interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>;//PE 10 detect falling edge, 4 represent port E
+//	};
 
-    touchscreen2: synaptics@20{
-		compatible = "syna,rmi4-i2c";
-		reg = <0x20>;// Synaptics S3501B i2c address.
-	    #address-cells = <1>;
-		#size-cells = <0>;
-		interrupt-parent = <&pio>;// Interrupt parent is out pin control (pio).
-		interrupt = <4 9 IRQ_TYPE_EDGE_FALLING>;// PE 9 detect falling edge, 4 is port E.
-		
-		rmi4-f01@1{
-			reg = <0x1>;
-			syna,nosleep-mode = <1>;
-		};
-		
-		rmi4-f11@11{
-			reg = <0x11>;
-			//touchscreen-inverted-y;
-			syna,sensor-type = <2>;// type 1 for touchscreen, type 2 for touchpad.
-		};
+//    touchscreen2: synaptics@20{
+//		#address-cells = <1>;
+//		#size-cells = <0>;
+//		
+//		pinctrl-names = "default";
+//		pinctrl-0 = <&INT_pin>;
+//		compatible = "syna,rmi4-i2c";
+//		reg = <0x20>;// Synaptics S3501B i2c address.
+//		interrupt-parent = <&pio>;// Interrupt parent is our pin control (pio).
+//		interrupt = <4 10 IRQ_TYPE_EDGE_FALLING>;// PE 10 detect falling edge, 4 is port E.
+//		//synaptics,irq-gpio = <&pio 4 10 0>;
+//	};
+
+	touchscreen3: maxtouch@4b{
+			pinctrl-names = "default";
+			pinctrl-0 = <&INT_pin>;
+			compatible = "atmel,maxtouch-ts";
+			reg = <0x4b>;
+			vdd-supply = <&reg_vcc3v3>;
+			avdd-supply = <&reg_vcc3v3>;
+			interrupt-parent = <&pio>;
+			interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>;// PE 10 detect falling edge, 4 is port E.
+			atmel,reset-gpio = <&pio 4 9 0>;// PE 9 for reset output pin.
 	};
 	
 //	bq27542: fuel-guage@55{
@@ -142,7 +147,7 @@
 		#size-cells = <1>;
 		compatible = "spi-nand","allwinner,sun4i-a10-nand";
 		reg = <0>;
-		spi-max-frequency = <80000000>;
+		spi-max-frequency = <100000000>;// 100MHz clock!!!
 
 			partitions {
 				compatible = "fixed-partitions";
@@ -181,24 +186,24 @@
 	pinctrl-0 = <&spi1_pins_a>;
 	status = "okay";
 	
-	fpga: fpga@0 {
-		compatible = "lattice,ice40-fpga-mgr";
-		reg = <0>;
-		spi-max-frequency = <1000000>;
-		cdone-gpios = <&pio 4 3 GPIO_ACTIVE_HIGH>;// PE3
-		reset-gpios = <&pio 4 4 GPIO_ACTIVE_LOW>;// PE4
-	};
-	
-//	fb@0{  
-//		#address-cell = <1>;
-//		#size-cell = <0>;
+//	fpga: fpga@0 {
+//		compatible = "lattice,ice40-fpga-mgr";
 //		reg = <0>;
-//		compatible = "sharp,sharp-memlcd";
-//		pwms = <&pwm 1 20000000 0>; // pwmchip0 (from &pwm1) period 0.016/666/666 second (1.6e7 ns).
-//		vcs-gpios = <&pio 4 3 GPIO_ACTIVE_LOW>; //virtual CS pin PE3 
-//		spi-max-frequency = <2000000>; // 2MHz
-//		spi-cs-high;
+//		spi-max-frequency = <1000000>;
+//		cdone-gpios = <&pio 4 3 GPIO_ACTIVE_HIGH>;// PE3
+//		reset-gpios = <&pio 4 4 GPIO_ACTIVE_LOW>;// PE4
 //	};
+	
+	fb@0{  
+		#address-cell = <1>;
+		#size-cell = <0>;
+		reg = <0>;
+		compatible = "sharp,sharp-memlcd";
+		pwms = <&pwm 1 20000000 0>; // pwmchip0 (from &pwm1) period 0.016/666/666 second (1.6e7 ns).
+		vcs-gpios = <&pio 4 3 GPIO_ACTIVE_LOW>; //virtual CS pin PE3 
+		spi-max-frequency = <2000000>; // 2MHz
+		spi-cs-high;// CS pin is active high.
+	};
 
 //	spidev@0{
 //		#address-cell = <1>;
