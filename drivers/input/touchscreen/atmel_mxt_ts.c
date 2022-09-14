@@ -10,6 +10,10 @@
  * Author: Joonyoung Shim <jy0922.shim@samsung.com>
  */
 
+#define DEBUG
+
+#define MXT112S
+
 #include <linux/acpi.h>
 #include <linux/dmi.h>
 #include <linux/module.h>
@@ -20,6 +24,7 @@
 #include <linux/i2c.h>
 #include <linux/input/mt.h>
 #include <linux/interrupt.h>
+#include <linux/irq.h>
 #include <linux/of.h>
 #include <linux/property.h>
 #include <linux/slab.h>
@@ -967,8 +972,10 @@ static int mxt_proc_message(struct mxt_data *data, u8 *message)
 {
 	u8 report_id = message[0];
 
+#ifndef MXT112S
 	if (report_id == MXT_RPTID_NOMSG)
 		return 0;
+#endif
 
 	if (report_id == data->T6_reportid) {
 		mxt_proc_t6_messages(data, message);
@@ -987,7 +994,11 @@ static int mxt_proc_message(struct mxt_data *data, u8 *message)
 	} else if (report_id == data->T19_reportid) {
 		mxt_input_button(data, message);
 		data->update_input = true;
-	} else {
+#ifdef MXT112S
+	} else if(report_id == 0xFF){// mXT112S from PS4 Dualshock 4 joy use 0xFF as report ID of first finger.
+		mxt_proc_t9_message(data, message);
+#endif
+	}else {
 		mxt_dump_message(data, message);
 	}
 
@@ -2977,7 +2988,7 @@ static void mxt_input_close(struct input_dev *dev)
 {
 	struct mxt_data *data = input_get_drvdata(dev);
 
-	mxt_stop(data);
+	//mxt_stop(data);
 }
 
 static int mxt_parse_device_properties(struct mxt_data *data)
@@ -3093,11 +3104,10 @@ static int mxt_probe(struct i2c_client *client, const struct i2c_device_id *id)
 		return error;
 	}
 
-	if(client->irq == 0)
-		client->irq = 39;// workaround for the of not parsing irq number.
+	dev_info(&client->dev, "IRQ number : %d\n", client->irq);
 
 	error = devm_request_threaded_irq(&client->dev, client->irq,
-					  NULL, mxt_interrupt, IRQF_ONESHOT,
+					  NULL, mxt_interrupt, IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
 					  client->name, data);
 	if (error) {
 		dev_err(&client->dev, "Failed to register interrupt\n");
