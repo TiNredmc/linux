@@ -234,11 +234,8 @@
 			INT_pin: int-pin{
 				pins = "PE10";// PE10 as input interrupt
 				function = "irq";
-				drive = <0>;
 				pull = <1>;
 			};
-			
-			
 			
 		};
 
@@ -272,9 +269,9 @@
 		};
 
 		wdt: watchdog@1c20ca0 {
-			compatible = "allwinner,suniv-f1c100s-wdt",
-				     "allwinner,sun4i-a10-wdt";
-			reg = <0x01c20ca0 0x20>;
+			compatible = "allwinner, suniv-f1c100s-wdt",
+                       "allwinner, sun6i-a31-wdt";
+			reg = <0x1c20ca0 0x20>;
 		};
 
 		lradc: lradc@1C23400 {

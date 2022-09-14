@@ -27,24 +27,6 @@
 		stdout-path = "serial0:115200n8";
 	};
 
-//	panel: panel {
-//		compatible = "lg,lb070wv8", "simple-panel";
-//		#address-cells = <1>;
-//		#size-cells = <0>;
-//		power-supply = <&reg_vcc3v3>;
-
-//		port@0 {
-//			reg = <0>;
-//			#address-cells = <1>;
-//			#size-cells = <0>;
-
-//			panel_input: endpoint@0 {
-//				reg = <0>;
-//				remote-endpoint = <&tcon0_out_lcd>;
-//			};
-//		};
-//	};
-
 	reg_vcc3v3: vcc3v3 {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc3v3";
@@ -78,39 +60,33 @@
     status = "okay";
     clock-frequency = <100000>;// 100kHz
 
-//	touchscreen: wacom@9{
-//		pinctrl-names = "default";
-//		pinctrl-0 = <&INT_pin>;
-//		compatible = "wacom,w9013";
-//		reg = <0x09>;//W9013 i2c address
-//		interrupt-parent = <&pio>;// Interrupt parent is our pin control (pio)
-//		interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>;//PE 10 detect falling edge, 4 represent port E
-//	};
+	// touchscreen: wacom@9{
+		// pinctrl-names = "default";
+		// pinctrl-0 = <&pio>;
+		// compatible = "wacom,w9013";
+		// reg = <0x09>;//W9013 i2c address
+		// interrupt-parent = <&pio>;// Interrupt parent is our pin control (pio)
+		// interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>;//PE 10 detect falling edge, 4 represent port E
+	// };
 
-//    touchscreen2: synaptics@20{
-//		#address-cells = <1>;
-//		#size-cells = <0>;
-//		
-//		pinctrl-names = "default";
-//		pinctrl-0 = <&INT_pin>;
-//		compatible = "syna,rmi4-i2c";
-//		reg = <0x20>;// Synaptics S3501B i2c address.
-//		interrupt-parent = <&pio>;// Interrupt parent is our pin control (pio).
-//		interrupt = <4 10 IRQ_TYPE_EDGE_FALLING>;// PE 10 detect falling edge, 4 is port E.
-//		//synaptics,irq-gpio = <&pio 4 10 0>;
-//	};
+    // touchscreen2: synaptics@20{
+		// #address-cells = <1>;
+		// #size-cells = <0>;
+		
+		// pinctrl-names = "default";
+		// pinctrl-0 = <&INT_pin>;
+		// compatible = "syna,rmi4-i2c";
+		// reg = <0x20>;// Synaptics S3501B i2c address.
+		// interrupt-parent = <&pio>;// Interrupt parent is our pin control (pio).
+		// interrupt = <4 10 IRQ_TYPE_EDGE_FALLING>;// PE 10 detect falling edge, 4 is port E.
+	// };
 
-	touchscreen3: maxtouch@4b{
-			pinctrl-names = "default";
-			pinctrl-0 = <&INT_pin>;
-			compatible = "atmel,maxtouch-ts";
-			reg = <0x4b>;
-			vdd-supply = <&reg_vcc3v3>;
-			avdd-supply = <&reg_vcc3v3>;
-			interrupt-parent = <&pio>;
-			interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>;// PE 10 detect falling edge, 4 is port E.
-			atmel,reset-gpio = <&pio 4 9 0>;// PE 9 for reset output pin.
-	};
+	// touchscreen3: maxtouch@4b{
+		// compatible = "atmel,maxtouch";
+		// reg = <0x4b>;
+		// interrupt-parent = <&pio>;
+		// interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>;// PE 10 detect falling edge, 4 is port E.
+	// };
 	
 //	bq27542: fuel-guage@55{
 //		compatible = "ti,bq27541";
@@ -129,6 +105,7 @@
 
 &pio {
 	status = "okay";
+
 };
 
 &pwm{
@@ -154,25 +131,25 @@
 				#address-cells = <1>;
 				#size-cells = <1>;
 
-				partition@0 {
+				partition@0 {// 512K
 					label = "uboot";
 					reg = <0x000000 0x80000>;
 					read-only;
 				};
 
-				partition@80000 {
+				partition@80000 {// 12k
 					label = "dtb";
 					reg = <0x80000 0x3000>;
 					read-only;
 				};
 
-				partition@A0000 {
+				partition@A0000 {// 4M
 					label = "kernel";
 					reg = <0xA0000 0x400000>;
 					read-only;
 				};
 
-				partition@4A0000 {
+				partition@4A0000 {// ~129M
 					label = "rootfs";
 					reg = <0x4A0000 0x7B60000>;
 				};
@@ -200,7 +177,7 @@
 		reg = <0>;
 		compatible = "sharp,sharp-memlcd";
 		pwms = <&pwm 1 20000000 0>; // pwmchip0 (from &pwm1) period 0.016/666/666 second (1.6e7 ns).
-		vcs-gpios = <&pio 4 3 GPIO_ACTIVE_LOW>; //virtual CS pin PE3 
+		vcs-gpios = <&pio 4 3 GPIO_ACTIVE_HIGH>; //virtual CS pin PE3 
 		spi-max-frequency = <2000000>; // 2MHz
 		spi-cs-high;// CS pin is active high.
 	};
