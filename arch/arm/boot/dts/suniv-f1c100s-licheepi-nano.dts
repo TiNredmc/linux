@@ -17,6 +17,7 @@
 
 	aliases {
 		serial0 = &uart0;
+		serial1 = &uart2;
 		spi0 = &spi0;
 		spi1 = &spi1;
 		i2c0 = &i2c0;
@@ -134,19 +135,16 @@
 				partition@0 {// 512K
 					label = "uboot";
 					reg = <0x000000 0x80000>;
-					read-only;
 				};
 
 				partition@80000 {// 12k
 					label = "dtb";
 					reg = <0x80000 0x3000>;
-					read-only;
 				};
 
 				partition@A0000 {// 4M
 					label = "kernel";
 					reg = <0xA0000 0x400000>;
-					read-only;
 				};
 
 				partition@4A0000 {// ~129M
@@ -211,6 +209,11 @@
 	status = "okay";
 };
 
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart2_pe_pins>;
+	status = "okay";
+};
 &usb_otg {
 	dr_mode = "otg";
 	status = "okay";

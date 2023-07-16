@@ -199,7 +199,12 @@
 
 			uart0_pe_pins: uart0-pe-pins {
 				pins = "PE0", "PE1";
-				function = "uart0";
+				function = "uart2";
+			};
+			
+			uart2_pe_pins: uart2-pe-pins {
+				pins = "PE8", "PE7";// RX, TX
+				function = "uart1";
 			};
 			
 			lcd_rgb666_pins: lcd-rgb666-pins {
