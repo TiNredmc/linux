@@ -35,7 +35,7 @@
 		regulator-max-microvolt = <3300000>;
 	};
 
-	bat: battery{// ALl settings are unique to each battery !
+	bat: battery{// All settings are unique to each battery !
 		compatible = "simple-battery";
 		voltage-min-design-microvolt = <2500000>; // minimum voltage that hurts battery less is 2.5v
 		energy-full-design-microwatt-hours = <14800000>; // 0.814 mWh -> 8.14e5 uWh
@@ -122,10 +122,10 @@
 
 	NAND:W25N01GV@0 {
 		#address-cells = <1>;
-		#size-cells = <1>;
+		#size-cells = <0>;
 		compatible = "spi-nand","allwinner,sun4i-a10-nand";
 		reg = <0>;
-		spi-max-frequency = <100000000>;// 100MHz clock!!!
+		spi-max-frequency = <100000000>;// 100MHz clock (Max)
 
 			partitions {
 				compatible = "fixed-partitions";
@@ -134,22 +134,22 @@
 
 				partition@0 {// 512K
 					label = "uboot";
-					reg = <0x000000 0x80000>;
+					reg = <0x000000 0x80000>;//reg <addr size>
 				};
 
 				partition@80000 {// 12k
 					label = "dtb";
-					reg = <0x80000 0x3000>;
+					reg = <0x80000 0x3000>;//reg <addr size>
 				};
 
 				partition@A0000 {// 4M
 					label = "kernel";
-					reg = <0xA0000 0x400000>;
+					reg = <0xA0000 0x400000>;//reg <addr size>
 				};
 
 				partition@4A0000 {// ~129M
 					label = "rootfs";
-					reg = <0x4A0000 0x7B60000>;
+					reg = <0x4A0000 0x7B60000>;//reg <addr size>
 				};
 			};
         };
@@ -158,16 +158,9 @@
 
 &spi1 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&spi1_pins_a>;
+	pinctrl-0 = <&spi1_pins_a &spi1_cs_pins>;
+	cs-gpios = <&pio 0 0 GPIO_ACTIVE_HIGH>, <&pio 4 4 GPIO_ACTIVE_HIGH>;// PA0 and PE4
 	status = "okay";
-	
-//	fpga: fpga@0 {
-//		compatible = "lattice,ice40-fpga-mgr";
-//		reg = <0>;
-//		spi-max-frequency = <1000000>;
-//		cdone-gpios = <&pio 4 3 GPIO_ACTIVE_HIGH>;// PE3
-//		reset-gpios = <&pio 4 4 GPIO_ACTIVE_LOW>;// PE4
-//	};
 	
 	fb@0{  
 		#address-cell = <1>;
@@ -180,14 +173,14 @@
 		spi-cs-high;// CS pin is active high.
 	};
 
-//	spidev@0{
-//		#address-cell = <1>;
-//		#size-cell = <1>;
-//		reg = <0>;
-//		compatible = "linux,spidev";
-//		spi-max-frequency = <50000000>; // 50MHz
-//		status = "okay";
-//	};
+	spidev@1{
+		#address-cell = <1>;
+		#size-cell = <0>;
+		reg = <0>;
+		compatible = "linux,spidev";
+		spi-max-frequency = <50000000>; // 50MHz
+		status = "okay";
+	};
 };
 
 //&tcon0 {

@@ -222,13 +222,18 @@
 			};
 
 			spi0_pins_a: spi0-pins-pc {
-				pins = "PC0", "PC1", "PC2", "PC3";
+				pins = "PC0", "PC1", "PC2", "PC3";// CLK, CS, MISO, MOSI
 				function = "spi0";
 			};
 
 			spi1_pins_a: spi1-pins-pc {
-				pins = "PA2", "PA0", "PA3", "PA1";
+				pins = "PA2", "PA0", "PA3", "PA1";// CLK, CS, MISO, MOSI
 				function = "spi1";
+			};
+			
+			spi1_cs_pins: spi0_cs_pins {
+                pins = "PA0", "PE4";
+                function = "gpio_out";
 			};
 
 			pwm1_pins: pwm {
@@ -275,10 +280,11 @@
 
 		wdt: watchdog@1c20ca0 {
 			compatible = "allwinner,suniv-f1c100s-wdt",
-                       "allwinner,sun6i-a31-wdt";
+                         "allwinner,sun6i-a31-wdt";
 			reg = <0x1c20ca0 0x20>;
 			interrupts = <16>;
 			clocks = <&osc32k>;
+			status = "okay";
 		};
 
 		lradc: lradc@1C23400 {
